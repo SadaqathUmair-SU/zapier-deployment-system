@@ -61,4 +61,29 @@ class DeploymentControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error.code").value("BAD_REQUEST"));
     }
+
+    @Test
+    void getMetrics_returnsPerServiceMetricsForTimeRange() throws Exception {
+        mockMvc.perform(get("/metrics")
+                        .param("time_range", "10000d"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data['billing-api'].frequency").isNumber())
+                .andExpect(jsonPath("$.data['billing-api'].p95Duration").isNumber())
+                .andExpect(jsonPath("$.data['billing-api'].failureRate").isNumber());
+    }
+
+    @Test
+    void getMetrics_usesDefaultTimeRangeWhenMissing() throws Exception {
+        mockMvc.perform(get("/metrics"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data").isMap());
+    }
+
+    @Test
+    void getMetrics_returnsBadRequestForInvalidTimeRange() throws Exception {
+        mockMvc.perform(get("/metrics")
+                        .param("time_range", "abc"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error.code").value("BAD_REQUEST"));
+    }
 }
