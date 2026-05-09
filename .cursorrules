@@ -1,0 +1,58 @@
+# Zapier Deployment System — Strict Rules (Short)
+
+## Stack
+- Java 17 + Spring Boot 3.3.x only.
+- In-memory storage only (no DB/JPA/@Transactional).
+
+## Architecture
+- Keep layer flow: `controller -> service -> repository`.
+- Packages must remain:
+  - `model`, `repository`, `service`, `controller`, `api`, `exception`, `seed`.
+
+## Coding Rules
+- Prefer immutability; use records where appropriate.
+- No Lombok.
+- Constructor injection only.
+- No field injection.
+- Use `Optional<T>` for nullable method params.
+- No static utility classes for business logic.
+
+## API Contract
+- Success responses: `ApiResponse<T>` (`{ "data": ... }`).
+- Error responses: `ErrorResponse` (`{ "error": { "code", "message" } }`).
+- Error codes: SCREAMING_SNAKE_CASE.
+- Unknown routes must return `404` in `ErrorResponse` shape (never masked as `500`).
+- If response shape changes, update tests + README in same change.
+
+## Validation & Converters
+- Validate at controller/service boundary (fail fast).
+- For enum query params, add `Converter<String, T>` in `api/`.
+
+## Repository Rules
+- Interface first, then implementation.
+- `InMemoryDeploymentRepository` must stay thread-safe.
+- `findAll()` must return timestamp-desc order.
+- Avoid null returns (`Optional` or exception).
+
+## Exceptions
+- Domain exceptions must be named types in `exception/`.
+- Handle all custom exceptions in `GlobalExceptionHandler`.
+- Do not expose raw exceptions to HTTP.
+
+## Testing
+- Integration tests with `@SpringBootTest` + `@AutoConfigureMockMvc`.
+- Assert status + response shape.
+- Deterministic seed data is part of contract (`deploy_001`..`deploy_040`).
+- Every new API/feature must include or update integration tests in the same change.
+- When enhancing existing APIs, update tests to reflect new behavior and response shape.
+- Test both success and failure paths for behavior changes.
+- Do not merge behavior changes without corresponding test updates.
+
+## Repo Hygiene
+- Do not commit build/IDE/OS artifacts (`target/`, `.idea/`, `.DS_Store`, etc.).
+- Keep README runnable in under 2 minutes.
+
+## Edge Case Policy
+- Every behavior change must consider and test edge cases.
+- Cover edge cases in tests for list/filter and detail APIs (empty results, invalid/malformed inputs, non-existent IDs).
+- Preserve response shape consistency for both success and error cases under edge conditions.

@@ -1,6 +1,7 @@
 package com.zapier.deployments.api;
 
 import com.zapier.deployments.exception.DeploymentNotFoundException;
+import com.zapier.deployments.exception.InvalidTimeRangeException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
@@ -21,6 +22,12 @@ public class GlobalExceptionHandler {
         String message = "Invalid status filter: " + ex.getValue() + ". Allowed values: SUCCESS, FAILED, CANCELLED";
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(new ErrorResponse(new ErrorResponse.ErrorBody("BAD_REQUEST", message)));
+    }
+
+    @ExceptionHandler(InvalidTimeRangeException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidTimeRange(InvalidTimeRangeException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new ErrorResponse(new ErrorResponse.ErrorBody("BAD_REQUEST", ex.getMessage())));
     }
 
     @ExceptionHandler(NoResourceFoundException.class)
